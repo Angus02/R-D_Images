@@ -1,0 +1,233 @@
+import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+// import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import 'canvas';
+// import { create as ipfsHttpClient } from "ipfs-http-client";
+import { Buffer } from 'buffer';
+// import metadata from './metadata';
+import { Button } from '../Button';
+// import mintToken from '../utils/Minter';
+import React from 'react';
+
+const authorization = "Basic MkdkVjVOTXM4WU1pT3h6b2RzODhIQTBFYXBsOmRjMzI4ZjQ5M2UyNzAxZjQxMDFiYmUyM2Y2OWNhYzgz";
+
+const ThreeGraphics = props => {
+
+
+    const colours = ['#922B21', '#943126', '#633974', '#5B2C6F', '#1A5276', '#21618C', '#117864' , '#0E6655', '#196F3D', '#1D8348', '#9A7D0A', '#9C640C', '#935116', '#873600', '#979A9A', '#797D7F', '#5F6A6A', '#515A5A', '#212F3C', '#1C2833'];
+    const [walletAddress, setWallet] = useState("");
+    const [buff, setBuff] = useState("");
+    const [images, setImages] = useState([])
+    const [loaded, setLoaded] = useState(0)
+
+
+
+    const Draw = (ctx, addr) => {
+
+        var scene = new THREE.Scene();
+        // scene.background = new THREE.Color( "grey" );
+
+        var camera = new THREE.PerspectiveCamera( 65, 400 / 400, 0.1, 1000 );
+
+        var renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
+        renderer.setPixelRatio(1);
+        renderer.setSize( 540, 540 );
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.25;
+
+        camera.position.z = 150;    
+        camera.position.x = 0;
+
+
+        function box(w,h,d,x,y,z, colour) {
+
+            const geometry = new THREE.BoxGeometry( w, h, d );
+            const material = new THREE.MeshPhysicalMaterial( {color: colour, roughness: 0, metalness: 0, } );
+            const cube = new THREE.Mesh( geometry, material );
+            cube.position.set( x, y, z);
+            cube.castShadow = true;
+            cube.receiveShadow = true;
+            scene.add( cube );
+
+        }
+
+        // box(550, 1, 550, 0, -45, -180, 'red');
+        box(330, 330, 1, 0, 0, -80, 'black');
+        // box(230, 230, 1, 0, 0, -120, 'grey');
+
+
+
+        var textureLoader2 = new THREE.TextureLoader();
+        var map = textureLoader2.load('gooseUV.png');
+        map.encoding = THREE.sRGBEncoding;
+        map.flipY = false;
+
+
+        function Lights() {
+            let x, y, a;
+            a = 0;
+
+            for(y = 0; y < 10; y++)
+            {
+              for(x = 0; x < 10; x++)
+              {
+                a += 1;
+                addLight((x * 25) - 112.5, (y * 25) - 112.5, -50 , "white")
+              }
+            }
+        }
+
+        function addLight(x, y, z, colour) {
+            const pointLight = new THREE.PointLight( colour, 0.2, 100 );
+            pointLight.position.set( x, y, z );
+
+            pointLight.castShadow = true;
+            scene.add( pointLight );
+    
+            // const sphereSize = 1;
+            // const pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize, colour );
+            // scene.add( pointLightHelper );
+        }
+
+        Lights();
+        // addLight(0, 35, 0 , colours[3]);
+        // addLight(10, 35, 20, colours[2]);
+        // addLight(0, 35, 45 , colours[3]);
+
+        const Amblight = new THREE.AmbientLight( 0x404040, 0.0 ); // soft white light
+        scene.add( Amblight );
+
+        const Hemlight = new THREE.HemisphereLight( 0xffffbb, 0x080820, 0.75 );
+        scene.add( Hemlight );
+
+
+        function spheres(x, y, z, r, col, rough) 
+        {
+            // console.log(col);
+
+            const geometry = new THREE.SphereGeometry( r, 64, 32 );
+            const material = new THREE.MeshStandardMaterial( {color: col, roughness: rough, metalness: 0, } );
+            const sphere = new THREE.Mesh( geometry, material );
+            sphere.position.set(x, y , z)
+            scene.add( sphere );
+        }
+
+        // spheres(-40, 0 , 0, 15);
+        // spheres(40, 0, 0, 5);
+
+        async function Multispheres() {
+
+            let u = await addr;
+            // console.log(u[1]);
+
+            let q,c,a = 0;
+
+            for(q = 0; q < 10; q++)
+            {
+              for(c = 0; c < 10; c++)
+              {
+                if(a === 20)
+                {
+                    a = 0;
+                }
+                a+=1;
+
+                if(c < 4 || c > 5)
+                {
+                    spheres((q * 20) - 90, (c * 20) - 90, -80 , 3, colours[u[a]], (u[a]) / 10);   
+                }
+
+                else if(q < 3 || q > 6)
+                {
+                    spheres((q * 20) - 90, (c * 20) - 90, -80 , 3, colours[u[a]], (u[a]) / 10);
+                }
+              }
+            }
+        }
+
+        Multispheres();
+
+        let r = 0;
+
+        function animate() {
+            r += 1;
+            if(r < 30)
+            {
+                requestAnimationFrame( animate );
+            }
+            // cube.rotation.y += 0.01;
+            // cube_2.position.x += 0.05;
+            document.getElementById("myScene").appendChild( renderer.domElement );
+            renderer.render( scene, camera );
+        }
+        animate();
+
+        var buffer;
+
+        setTimeout(async function() {
+
+            var URL = renderer.domElement.toDataURL('image/png');
+            // console.log(URL);
+            buffer = Buffer(URL.split(",")[1], 'base64');
+            // console.log(buffer);
+            // const result = await ipfs.add(buffer);
+
+            // console.log(result.path);
+            setBuff(buffer);
+            setLoaded(1);
+        }, 5000);
+    }
+
+
+    useEffect(() => {
+
+        let num = [];
+
+        // async function load() {
+        //     // const adress = await data();
+        //     // console.log(adress);
+        //     // num = adress;
+
+            
+        //     Draw("myScene", num);
+
+        //     // console.log(authorization, "authorization");
+        // }
+        // load();  
+        Draw("myScene", num);
+      
+        
+        // convert(ctx);
+    }, []);
+
+
+    return (
+        <>
+
+            {/* <div className='cemtered'>
+                {walletAddress !== "" ? (
+                    <>
+                        <div className='mintBtn2'>
+
+                            <MyComponent />
+                        </div>
+                    </>
+
+                ) : ( 
+                    <>
+                        <div className='centered'>
+                            <h1> Please Connect Wallet</h1>
+                        </div>
+                    </>
+                )}
+            </div> */}
+
+            <div className='centeredIMG' id="myScene" />
+
+        </>
+    );
+}
+
+export default ThreeGraphics;
