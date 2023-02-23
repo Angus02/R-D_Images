@@ -58,7 +58,7 @@ function App() {
     else
     {
       res = await openai.createImage({
-        prompt: prompt + "full-frame, high resolution, DSLR, colour correction, 50mm",
+        prompt: prompt + "full-frame, high resolution, DSLR, colour correction, realistic, high definition, detailed lighting",
         n: 1,
         size: "512x512",
       });

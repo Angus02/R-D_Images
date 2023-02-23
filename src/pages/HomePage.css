@@ -43,3 +43,9 @@
     width: 30%;
     color: white;
 }
+
+.connectBtn {
+    position:absolute;
+    top: 5vh;
+    right: 5%;
+}

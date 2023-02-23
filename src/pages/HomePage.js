@@ -1,10 +1,47 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Open from './OpenAi';
 import { Button } from '../Button'
 import './HomePage.css'
 import ThreeGraphics from "./ThreejsScene";
+import { getCurrentWalletConnected, connectWallet } from "../interact";
 
 function Home() {
+
+    const [walletAddress, setWallet] = useState("");
+    const [button, setButton] = useState(true);
+
+    const connectWalletPressed = async () => { //TODO: implement
+        const walletResponse = await connectWallet();
+    };
+
+    const showButton = () => {
+        if(window.innerWidth <= 350) {
+            setButton(false);
+        } else {
+            setButton(true);
+        }
+    };
+
+    function Install() {
+        if(typeof window.ethereum !== 'undefined') {
+          return "Connect Wallet"
+        } else {
+          return (
+            <p href='https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn?hl=en'>Install MetaMask</p>
+          )
+        }
+    }
+
+    useEffect(() => { //TODO: implement
+
+        async function fetchData() {
+          const {address, status} = await getCurrentWalletConnected();
+          setWallet(address);
+        }
+    
+        fetchData();
+    }, []);
+
 
 
     class Combined extends React.Component {
@@ -181,7 +218,22 @@ function Home() {
             <div className='containerGeese'>
 
                 <div className='containerBlackFill'>
-                        <Pick />
+                    <div className='connectBtn'>
+                        <p>
+                            {button && <Button buttonStyle='btn--outline' buttonSize='btn--medium' onClick={connectWalletPressed}>
+                            {walletAddress.length > 0 ? (
+                            "Connected: " +
+                            String(walletAddress).substring(0, 4) +
+                            "..." +
+                            String(walletAddress).substring(38)
+                            ) : (
+                            Install()
+                            )}</Button>}
+                        </p>
+                    </div>
+
+
+                    <Pick />
                 </div>
             </div>
         </div>
